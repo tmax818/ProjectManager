@@ -22,39 +22,32 @@
 </head>
 <body>
 <div class="container">
-<h1  class="align-content-center">Welcome, ${user.userName} </h1>
-    <div class="row">
-        <h2>Books</h2>
-        <div class="float-end">
-        <a class="float-end btn-sm btn-primary" href="/books/new">Add Book</a>
-        <a class="float-end btn-sm btn-danger" href="/logout">Logout</a>
-        </div>
-        <table class="table table-bordered">
+    <h2><a href="/dashboard">Dashboard</a></h2>
+
+    <h1>Project: ${project.title}</h1>
+    <h5>Project Lead: ${project.lead.firstName}</h5>
+
+    <form:form action="/projects/${project.id}/tasks" method="post" modelAttribute="task">
+        <table>
             <thead>
             <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Posted By</th>
+                <td class="float-left">Add a task ticket for this team:</td>
+                <td class="float-left">
+                    <form:errors path="name" class="text-danger"/>
+                    <form:textarea rows="4" class="input" path="name"/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan=2><input class="input" class="button" type="submit" value="Submit"/></td>
             </tr>
             </thead>
-            <tbody>
-                <c:forEach var="book" items="${books}">
-                    <tr>
-                        <td><c:out value="${book.id}"></c:out></td>
-                        <td>
-                            <a href="/books/${book.id}">
-                            <c:out value="${book.title}"></c:out></a>
-                        </td>
-                        <td><c:out value="${book.author}"></c:out></td>
-                        <td><c:out value="${book.user.getUserName()}"></c:out></td>
-                    </tr>
-                </c:forEach>
-            </tbody>
-
         </table>
-
-    </div>
+    </form:form>
+    <hr>
+    <c:forEach var="task" items="${tasks}">
+        <h4>Added by <c:out value="${task.creator.firstName}"></c:out> at <fmt:formatDate value="${task.createdAt}" pattern="h:mm a MMMM dd"/>:</h4>
+        <p><c:out value="${task.name}"></c:out></p>
+    </c:forEach>
 </div>
 </body>
 </html>

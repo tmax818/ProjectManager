@@ -1,14 +1,11 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<!-- c:out ; c:forEach etc. -->
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<!-- Formatting (dates) -->
-<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
-<!-- form:form -->
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
-<!-- for rendering errors on PUT routes -->
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+         pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page isErrorPage="true" %>
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -18,37 +15,44 @@
     <link rel="stylesheet" href="/css/main.css"> <!-- change to match your file/naming structure -->
     <script src="/webjars/jquery/jquery.min.js"></script>
     <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
-    <title>Document</title>
+    <title>Edit Project</title>
 </head>
 <body>
-<div class="container">
-    <h1  class="align-content-center">New Book</h1>
-    <div class="row">
-        <div class="col">
-            <div class="form-group">
-                <form:form action="/books/${book.id}" method="put" modelAttribute="book">
-                    <input type="hidden" name="_method" value="put">
-                    <div class="form-group">
-                        <form:label path="title">title</form:label>
-                        <form:input  class="form-control" path="title"/>
-                        <form:errors path="title"/>
-                    </div>
-                    <div>
-                        <form:label path="author">author</form:label>
-                        <form:input  class="form-control" path="author"/>
-                        <form:errors path="author"/>
-                    </div>
-                    <div>
-                        <form:label path="myThoughts">myThoughts</form:label>
-                        <form:input type="textarea"  class="form-control" path="myThoughts"/>
-                        <form:errors path="myThoughts"/>
-                    </div>
-                    <input type="submit" value="edit book">
-                </form:form>
-            </div>
-        </div>
 
-    </div>
-</div>
+<h2><a href="/dashboard">Dashboard</a></h2>
+
+<h1>Edit Project</h1>
+
+<form:form action="/projects/edit/${project.id}" method="post" modelAttribute="project">
+
+    <table>
+        <thead>
+        <tr>
+            <td class="float-left">Project Title:</td>
+            <td class="float-left">
+                <form:errors path="title" class="text-danger"/>
+                <form:input class="input" path="title" value="${project.title}"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="float-left">Project Description:</td>
+            <td class="float-left">
+                <form:errors path="description" class="text-danger"/>
+                <form:textarea rows="4" class="input" path="description" value="${project.description}"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="float-left">Due Date:</td>
+            <td class="float-left">
+                <form:errors path="dueDate" class="text-danger"/>
+                <form:input path="dueDate" type="date" value="${project.dueDate}"/>
+            </td>
+        </tr>
+        <tr>
+            <td colspan=2><input class="input" class="button" type="submit" value="Submit"/></td>
+        </tr>
+        </thead>
+    </table>
+</form:form>
 </body>
 </html>

@@ -1,25 +1,26 @@
 package tylermaxwell.projectmanager.services;
+import java.util.List;
+import java.util.Optional;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
+
 import tylermaxwell.projectmanager.models.LoginUser;
+import tylermaxwell.projectmanager.models.Project;
 import tylermaxwell.projectmanager.models.User;
 import tylermaxwell.projectmanager.repositories.UserRepository;
-
-import java.util.Optional;
-
 
 @Service
 public class UserService {
 
     @Autowired
-    private UserRepository userRepo;
+    UserRepository repo;
 
     public User register(User newUser, BindingResult result) {
 
-        Optional<User> potentialUser = userRepo.findByEmail(newUser.getEmail());
+        Optional<User> potentialUser = repo.findByEmail(newUser.getEmail());
 
         // Reject if email is taken (present in database)
         if(potentialUser.isPresent()) {
@@ -39,13 +40,13 @@ public class UserService {
         // Hash and set password, save user to database
         String hashed = BCrypt.hashpw(newUser.getPassword(), BCrypt.gensalt());
         newUser.setPassword(hashed);
-        return userRepo.save(newUser);
+        return repo.save(newUser);
 
     }
 
     public User login(LoginUser newLogin, BindingResult result) {
 
-        Optional<User> potentialUser = userRepo.findByEmail(newLogin.getEmail());
+        Optional<User> potentialUser = repo.findByEmail(newLogin.getEmail());
 
         // Find user in the DB by email
         // Reject if NOT present
@@ -69,14 +70,27 @@ public class UserService {
 
         // Otherwise, return the user object
         return user;
+
+    }
+
+    public List<User> allUsers(){
+        return repo.findAll();
+    }
+
+    public User updateUser(User user) {
+        return repo.save(user);
+    }
+
+    public List<User> getAssignedProjects(Project project){
+        return repo.findAllByProjects(project);
+    }
+
+    public List<User> getunAssignedProjects(Project project){
+        return repo.findByProjectsNotContains(project);
     }
 
     public User findById(Long id) {
-        Optional<User> potentialUser = userRepo.findById(id);
-        if(potentialUser.isPresent()) {
-            return potentialUser.get();
-        }
-        return null;
+        Optional<User> optionalUser = repo.findById(id);
+        return optionalUser.orElse(null);
     }
-
 }
