@@ -33,6 +33,8 @@ public class MainController {
     private ProjectTaskService taskService;
 
     /////////////////////////////////////! LOGIN/REG /////////////////////////////////////////////////
+
+    //# DISPLAY LOGIN/REG PAGE
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("newUser", new User());
@@ -40,6 +42,7 @@ public class MainController {
         return "index.jsp";
     }
 
+    //! HANDLE REG
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("newUser") User newUser,
                            BindingResult result, Model model, HttpSession session) {
@@ -55,6 +58,7 @@ public class MainController {
         return "redirect:/dashboard";
     }
 
+    //! HANDLE LOGIN
     @PostMapping("/login")
     public String login(@Valid @ModelAttribute("newLogin") LoginUser newLogin,
                         BindingResult result, Model model, HttpSession session) {
@@ -71,7 +75,7 @@ public class MainController {
         return "redirect:/dashboard";
     }
 
-
+    //! HANDLE LOGOUT
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.setAttribute("userId", null);
@@ -79,7 +83,39 @@ public class MainController {
     }
 
 
-    ///! PROJECTS /////
+    /////////////////////////////! PROJECTS ///////////////////////////////////////
+
+    //! CREATE PROJECT
+    @GetMapping("/projects/new")
+    public String newProject(@ModelAttribute("project") Project project, HttpSession session) {
+        if(session.getAttribute("userId") == null) {
+            return "redirect:/logout";
+        }
+        return "projects/new.jsp";
+    }
+
+    @PostMapping("/projects/new")
+    public String addNewProject(@Valid @ModelAttribute("project") Project project, BindingResult result, HttpSession session) {
+
+        if(session.getAttribute("userId") == null) {
+            return "redirect:/logout";
+        }
+        Long userId = (Long) session.getAttribute("userId");
+
+        if(result.hasErrors()) {
+            return "projects/new.jsp";
+        }else {
+            User user = userService.findById(userId);
+            Project newProject = new Project(project.getTitle(), project.getDueDate(), project.getDescription(), project.getLead());
+            newProject.setLead(user);
+            projectService.addProject(newProject);
+            user.getProjects().add(newProject);
+            userService.updateUser(user);
+            return "redirect:/dashboard";
+        }
+    }
+
+    //! READ ALL
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
 
@@ -95,6 +131,49 @@ public class MainController {
         return "dashboard.jsp";
     }
 
+    //! READ ONE PROJECT
+
+    @GetMapping("/projects/{id}/tasks")
+    public String viewProjectTasks(@PathVariable("id") Long id, HttpSession session, Model model, @ModelAttribute("task") Task task) {
+
+        if(session.getAttribute("userId") == null) {
+            return "redirect:/logout";
+        }
+
+        Project project = projectService.findById(id);
+        model.addAttribute("project", project);
+        model.addAttribute("tasks", taskService.projectTasks(id));
+        return "tasks/index.jsp";
+    }
+
+    @PostMapping("/projects/{id}/tasks")
+    public String newProjectTask(
+            @PathVariable("id") Long id,
+            HttpSession session,
+            Model model,
+            @Valid @ModelAttribute("task") Task task,
+            BindingResult result) {
+
+        if(session.getAttribute("userId") == null) {
+            return "redirect:/logout";
+        }
+        Long userId = (Long) session.getAttribute("userId");
+
+        Project project = projectService.findById(id);
+
+        if(result.hasErrors()) {
+            model.addAttribute("project", project);
+            model.addAttribute("tasks", taskService.projectTasks(id));
+            return "tasks/index.jsp";
+        }else {
+            Task newTask = new Task(task.getName());
+            newTask.setProject(project);
+            newTask.setCreator(userService.findById(userId));
+            taskService.addTask(newTask);
+            return "redirect:/projects/" + id + "/tasks";
+        }
+    }
+    //! JOIN PROJECT
     @RequestMapping("/dashboard/join/{id}")
     public String joinTeam(@PathVariable("id") Long id, HttpSession session, Model model) {
         if(session.getAttribute("userId") == null) {
@@ -115,6 +194,7 @@ public class MainController {
         return "redirect:/dashboard";
     }
 
+    //! LEAVE PROJECT
     @RequestMapping("/dashboard/leave/{id}")
     public String leaveTeam(@PathVariable("id") Long id, HttpSession session, Model model) {
 
@@ -212,77 +292,8 @@ public class MainController {
         return "redirect:/dashboard";
     }
 
-    //! CREATE PROJECT
-    @GetMapping("/projects/new")
-    public String newProject(@ModelAttribute("project") Project project, HttpSession session) {
-        if(session.getAttribute("userId") == null) {
-            return "redirect:/logout";
-        }
-        return "projects/new.jsp";
-    }
 
-    @PostMapping("/projects/new")
-    public String addNewProject(@Valid @ModelAttribute("project") Project project, BindingResult result, HttpSession session) {
 
-        if(session.getAttribute("userId") == null) {
-            return "redirect:/logout";
-        }
-        Long userId = (Long) session.getAttribute("userId");
 
-        if(result.hasErrors()) {
-            return "projects/new.jsp";
-        }else {
-            User user = userService.findById(userId);
-            Project newProject = new Project(project.getTitle(), project.getDueDate(), project.getDescription(), project.getLead());
-            newProject.setLead(user);
-            projectService.addProject(newProject);
-            user.getProjects().add(newProject);
-            userService.updateUser(user);
-            return "redirect:/dashboard";
-        }
-    }
-
-    //! READ ONE PROJECT
-
-    @GetMapping("/projects/{id}/tasks")
-    public String viewProjectTasks(@PathVariable("id") Long id, HttpSession session, Model model, @ModelAttribute("task") Task task) {
-
-        if(session.getAttribute("userId") == null) {
-            return "redirect:/logout";
-        }
-
-        Project project = projectService.findById(id);
-        model.addAttribute("project", project);
-        model.addAttribute("tasks", taskService.projectTasks(id));
-        return "tasks/index.jsp";
-    }
-
-    @PostMapping("/projects/{id}/tasks")
-    public String newProjectTask(
-            @PathVariable("id") Long id,
-            HttpSession session,
-            Model model,
-            @Valid @ModelAttribute("task") Task task,
-            BindingResult result) {
-
-        if(session.getAttribute("userId") == null) {
-            return "redirect:/logout";
-        }
-        Long userId = (Long) session.getAttribute("userId");
-
-        Project project = projectService.findById(id);
-
-        if(result.hasErrors()) {
-            model.addAttribute("project", project);
-            model.addAttribute("tasks", taskService.projectTasks(id));
-            return "tasks/index.jsp";
-        }else {
-            Task newTask = new Task(task.getName());
-            newTask.setProject(project);
-            newTask.setCreator(userService.findById(userId));
-            taskService.addTask(newTask);
-            return "redirect:/projects/" + id + "/tasks";
-        }
-    }
 
 }
